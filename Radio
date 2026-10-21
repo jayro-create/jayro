@@ -1,0 +1,53 @@
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1562357595497431091/xvjrHMKRNze1gFW6C7RHQh7u-HhIZ2UHNcMFEWVxY2N6xBqw-cruzStjKUmj7fqsSE1f"
+
+local placeId = game.PlaceId
+local jobId = game.JobId
+
+local function enviarAlerta(tipoHuevo)
+    local joinLink = "https://www.roblox.com/games/start?placeId=" .. tostring(placeId) .. "&gameInstanceId=" .. tostring(jobId)
+    local deepLink = "roblox://experiences/start?placeId=" .. tostring(placeId) .. "&gameInstanceId=" .. tostring(jobId)
+
+    local payload = {
+        ["embeds"] = {{
+            ["title"] = "🥚 ¡HUEVO RARO / GRANDE DETECTADO! 🥚",
+            ["description"] = "El sistema detectó actividad en tiempo real de: **" .. tostring(tipoHuevo) .. "**",
+            ["color"] = 16766720,
+            ["fields"] = {
+                {
+                    ["name"] = "🔗 Unirse directamente",
+                    ["value"] = "[Unirse al Servidor](" .. joinLink .. ")",
+                    ["inline"] = false
+                },
+                {
+                    ["name"] = "🚀 Deep Link",
+                    ["value"] = "`" .. deepLink .. "`",
+                    ["inline"] = false
+                }
+            },
+            ["footer"] = { ["text"] = "Roba un Huevo Tracker" }
+        }}
+    }
+
+    local req = (syn and syn.request) or (http and http.request) or http_request or request
+    if req then
+        req({
+            Url = WEBHOOK_URL,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = HttpService:JSONEncode(payload)
+        })
+    end
+end
+
+-- Vigilante en tiempo real: Se queda escuchando si aparece un huevo nuevo en el mapa
+Workspace.ChildAdded:Connect(function(obj)
+    local nombre = string.lower(obj.Name)
+    if string.find(nombre, "rare") or string.find(nombre, "giant") or string.find(nombre, "golden") or string.find(nombre, "big") then
+        enviarAlerta(obj.Name)
+    end
+end)
